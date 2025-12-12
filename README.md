@@ -89,7 +89,14 @@ func (c *UserController) UploadProfile(ctx *gin.Context) {
     // Get URL
     url := c.Disk.Url("avatars/"+file.Filename)
     
-    ctx.JSON(200, gin.H{"url": url})
+    // Get Temporary URL (Signed) - Valid for 15 minutes
+    // Great for private S3 files
+    signedUrl, _ := c.Disk.SignedUrl("avatars/"+file.Filename, 15*time.Minute)
+
+    ctx.JSON(200, gin.H{
+        "url": url,
+        "signed_url": signedUrl,
+    })
 }
 ```
 
@@ -129,6 +136,7 @@ type Disk interface {
     Exists(path string) (bool, error)
     Delete(path string) error
     Url(path string) string
+    SignedUrl(path string, expiration time.Duration) (string, error)
     MakeDirectory(path string) error
     DeleteDirectory(path string) error
 }
