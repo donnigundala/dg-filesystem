@@ -23,7 +23,7 @@ func (p *FilesystemServiceProvider) Version() string {
 
 // Dependencies returns the provider dependencies.
 func (p *FilesystemServiceProvider) Dependencies() []string {
-	return []string{"config"}
+	return []string{}
 }
 
 // Register registers the filesystem service.
