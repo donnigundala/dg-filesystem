@@ -11,6 +11,11 @@ type FilesystemServiceProvider struct {
 	Manager *Manager
 }
 
+// NewFilesystemServiceProvider creates a new filesystem service provider.
+func NewFilesystemServiceProvider() *FilesystemServiceProvider {
+	return &FilesystemServiceProvider{}
+}
+
 // Name returns the provider name.
 func (p *FilesystemServiceProvider) Name() string {
 	return "filesystem"
