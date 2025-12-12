@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"io"
+	"time"
 )
 
 // Disk represents a storage disk (local or cloud).
@@ -26,6 +27,10 @@ type Disk interface {
 
 	// Url returns the public URL for the file at the given path.
 	Url(path string) string
+
+	// SignedUrl returns a temporary URL for the file at the given path, valid for the given duration.
+	// Useful for giving temporary access to private files.
+	SignedUrl(path string, expiration time.Duration) (string, error)
 
 	// MakeDirectory creates a directory at the given path.
 	MakeDirectory(path string) error

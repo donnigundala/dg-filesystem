@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -17,6 +18,7 @@ import (
 // S3Disk implements the Disk interface for AWS S3 compatible storage.
 type S3Disk struct {
 	client     *s3.Client
+	presigner  *s3.PresignClient
 	uploader   *manager.Uploader
 	downloader *manager.Downloader
 	bucket     string
@@ -58,11 +60,13 @@ func NewS3Disk(cfg map[string]interface{}) (filesystem.Disk, error) {
 		o.UsePathStyle = usePathStyle
 	})
 
+	presigner := s3.NewPresignClient(client)
 	uploader := manager.NewUploader(client)
 	downloader := manager.NewDownloader(client)
 
 	return &S3Disk{
 		client:     client,
+		presigner:  presigner,
 		uploader:   uploader,
 		downloader: downloader,
 		bucket:     bucket,
@@ -141,6 +145,19 @@ func (d *S3Disk) Url(path string) string {
 	}
 	// Fallback to standard S3 URL (virtual-hosted style)
 	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", d.bucket, strings.TrimPrefix(path, "/"))
+}
+
+func (d *S3Disk) SignedUrl(path string, expiration time.Duration) (string, error) {
+	req, err := d.presigner.PresignGetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String(d.bucket),
+		Key:    aws.String(path),
+	}, func(o *s3.PresignOptions) {
+		o.Expires = expiration
+	})
+	if err != nil {
+		return "", err
+	}
+	return req.URL, nil
 }
 
 func (d *S3Disk) MakeDirectory(path string) error {

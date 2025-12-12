@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // LocalDisk implements the Disk interface for local storage.
@@ -100,6 +101,12 @@ func (d *LocalDisk) Url(path string) string {
 	cleanPath = strings.TrimPrefix(cleanPath, "/")
 
 	return fmt.Sprintf("%s/%s", strings.TrimRight(d.url, "/"), cleanPath)
+}
+
+func (d *LocalDisk) SignedUrl(path string, expiration time.Duration) (string, error) {
+	// Local driver does not support true signed URLs.
+	// We return the standard URL as a fallback.
+	return d.Url(path), nil
 }
 
 func (d *LocalDisk) MakeDirectory(path string) error {
