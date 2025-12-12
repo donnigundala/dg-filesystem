@@ -1,9 +1,8 @@
 package filesystem
 
 import (
-	"fmt"
-
 	"github.com/donnigundala/dg-core/container"
+	"github.com/donnigundala/dg-core/contracts/foundation"
 	"github.com/spf13/viper"
 )
 
@@ -28,13 +27,13 @@ func (p *FilesystemServiceProvider) Dependencies() []string {
 }
 
 // Register registers the filesystem service.
-func (p *FilesystemServiceProvider) Register(c container.Container) error {
+func (p *FilesystemServiceProvider) Register(app foundation.Application) error {
 	p.Manager = NewManager()
 
 	// Register built-in drivers
 	p.Manager.Extend("local", NewLocalDisk)
 
-	c.Singleton("filesystem", func(c container.Container) (interface{}, error) {
+	app.Singleton("filesystem", func(c container.Container) (interface{}, error) {
 		return p.Manager, nil
 	})
 
@@ -42,7 +41,7 @@ func (p *FilesystemServiceProvider) Register(c container.Container) error {
 }
 
 // Boot boots the filesystem service.
-func (p *FilesystemServiceProvider) Boot(c container.Container) error {
+func (p *FilesystemServiceProvider) Boot(app foundation.Application) error {
 	config := viper.GetStringMap("filesystem.disks")
 
 	for name, diskConfig := range config {
@@ -58,51 +57,17 @@ func (p *FilesystemServiceProvider) Boot(c container.Container) error {
 		}
 
 		// Register disk in container as filesystem.name
-		c.Singleton("filesystem."+name, func(c container.Container) (interface{}, error) {
+		app.Singleton("filesystem."+name, func(c container.Container) (interface{}, error) {
 			return disk, nil
 		})
 
 		// If this is the default disk, register it as "disk"
 		if name == viper.GetString("filesystem.default") {
-			c.Singleton("disk", func(c container.Container) (interface{}, error) {
+			app.Singleton("disk", func(c container.Container) (interface{}, error) {
 				return disk, nil
 			})
 		}
 	}
 
 	return nil
-}
-
-// Injectable allows automatic dependency injection of the default Disk.
-type Injectable struct {
-	Disk Disk
-}
-
-// Provide implements the Injectable interface for DI.
-func (i *Injectable) Provide(c container.Container) error {
-	var err error
-	i.Disk, err = Resolve(c)
-	return err
-}
-
-// Resolve returns the default disk from the container.
-func Resolve(c container.Container) (Disk, error) {
-	instance, err := c.Make("disk")
-	if err != nil {
-		return nil, err
-	}
-	disk, ok := instance.(Disk)
-	if !ok {
-		return nil, fmt.Errorf("resolved object is not a Disk")
-	}
-	return disk, nil
-}
-
-// MustResolve returns the default disk or panics.
-func MustResolve(c container.Container) Disk {
-	disk, err := Resolve(c)
-	if err != nil {
-		panic(err)
-	}
-	return disk
 }
