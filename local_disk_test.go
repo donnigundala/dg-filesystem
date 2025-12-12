@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -37,6 +38,11 @@ func TestLocalDisk(t *testing.T) {
 	// Test Url
 	url := disk.Url("test.txt")
 	assert.Equal(t, "http://localhost/storage/test.txt", url)
+
+	// Test SignedUrl (Local implementation returns standard URL)
+	signedUrl, err := disk.SignedUrl("test.txt", 1*time.Minute)
+	assert.NoError(t, err)
+	assert.Equal(t, "http://localhost/storage/test.txt", signedUrl)
 
 	// Test Delete
 	err = disk.Delete("test.txt")
