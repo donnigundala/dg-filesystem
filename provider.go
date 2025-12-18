@@ -3,11 +3,13 @@ package filesystem
 import (
 	"github.com/donnigundala/dg-core/container"
 	"github.com/donnigundala/dg-core/contracts/foundation"
-	"github.com/spf13/viper"
 )
 
 // FilesystemServiceProvider is the service provider for the filesystem module.
 type FilesystemServiceProvider struct {
+	// Config is auto-injected by dg-core if using config tags
+	Config Config `config:"filesystem"`
+
 	Manager *Manager
 }
 
@@ -47,16 +49,9 @@ func (p *FilesystemServiceProvider) Register(app foundation.Application) error {
 
 // Boot boots the filesystem service.
 func (p *FilesystemServiceProvider) Boot(app foundation.Application) error {
-	config := viper.GetStringMap("filesystem.disks")
-
-	for name, diskConfig := range config {
-		cfg, ok := diskConfig.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
+	for name, diskConfig := range p.Config.Disks {
 		// Create disk instance
-		disk, err := p.Manager.Disk(name, cfg)
+		disk, err := p.Manager.Disk(name, diskConfig)
 		if err != nil {
 			return err
 		}
@@ -67,7 +62,7 @@ func (p *FilesystemServiceProvider) Boot(app foundation.Application) error {
 		})
 
 		// If this is the default disk, register it as "disk"
-		if name == viper.GetString("filesystem.default") {
+		if name == p.Config.Default {
 			app.Singleton("disk", func(c container.Container) (interface{}, error) {
 				return disk, nil
 			})
