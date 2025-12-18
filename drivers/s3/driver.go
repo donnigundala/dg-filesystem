@@ -11,14 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	awsS3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	filesystem "github.com/donnigundala/dg-filesystem"
 )
 
 // S3Disk implements the Disk interface for AWS S3 compatible storage.
 type S3Disk struct {
-	client     *s3.Client
-	presigner  *s3.PresignClient
+	client     *awsS3.Client
+	presigner  *awsS3.PresignClient
 	uploader   *manager.Uploader
 	downloader *manager.Downloader
 	bucket     string
@@ -56,11 +56,11 @@ func NewS3Disk(cfg map[string]interface{}) (filesystem.Disk, error) {
 		awsCfg.BaseEndpoint = aws.String(apiEndpoint)
 	}
 
-	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
+	client := awsS3.NewFromConfig(awsCfg, func(o *awsS3.Options) {
 		o.UsePathStyle = usePathStyle
 	})
 
-	presigner := s3.NewPresignClient(client)
+	presigner := awsS3.NewPresignClient(client)
 	uploader := manager.NewUploader(client)
 	downloader := manager.NewDownloader(client)
 
@@ -77,7 +77,7 @@ func NewS3Disk(cfg map[string]interface{}) (filesystem.Disk, error) {
 
 func (d *S3Disk) Put(path string, content []byte) error {
 	reader := bytes.NewReader(content)
-	_, err := d.uploader.Upload(context.TODO(), &s3.PutObjectInput{
+	_, err := d.uploader.Upload(context.TODO(), &awsS3.PutObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
 		Body:   reader,
@@ -86,7 +86,7 @@ func (d *S3Disk) Put(path string, content []byte) error {
 }
 
 func (d *S3Disk) PutStream(path string, content io.Reader) error {
-	_, err := d.uploader.Upload(context.TODO(), &s3.PutObjectInput{
+	_, err := d.uploader.Upload(context.TODO(), &awsS3.PutObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
 		Body:   content,
@@ -96,7 +96,7 @@ func (d *S3Disk) PutStream(path string, content io.Reader) error {
 
 func (d *S3Disk) Get(path string) ([]byte, error) {
 	buffer := manager.NewWriteAtBuffer([]byte{})
-	_, err := d.downloader.Download(context.TODO(), buffer, &s3.GetObjectInput{
+	_, err := d.downloader.Download(context.TODO(), buffer, &awsS3.GetObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
 	})
@@ -107,7 +107,7 @@ func (d *S3Disk) Get(path string) ([]byte, error) {
 }
 
 func (d *S3Disk) GetStream(path string) (io.ReadCloser, error) {
-	out, err := d.client.GetObject(context.TODO(), &s3.GetObjectInput{
+	out, err := d.client.GetObject(context.TODO(), &awsS3.GetObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
 	})
@@ -118,7 +118,7 @@ func (d *S3Disk) GetStream(path string) (io.ReadCloser, error) {
 }
 
 func (d *S3Disk) Exists(path string) (bool, error) {
-	_, err := d.client.HeadObject(context.TODO(), &s3.HeadObjectInput{
+	_, err := d.client.HeadObject(context.TODO(), &awsS3.HeadObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
 	})
@@ -132,7 +132,7 @@ func (d *S3Disk) Exists(path string) (bool, error) {
 }
 
 func (d *S3Disk) Delete(path string) error {
-	_, err := d.client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+	_, err := d.client.DeleteObject(context.TODO(), &awsS3.DeleteObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
 	})
@@ -148,10 +148,10 @@ func (d *S3Disk) Url(path string) string {
 }
 
 func (d *S3Disk) SignedUrl(path string, expiration time.Duration) (string, error) {
-	req, err := d.presigner.PresignGetObject(context.TODO(), &s3.GetObjectInput{
+	req, err := d.presigner.PresignGetObject(context.TODO(), &awsS3.GetObjectInput{
 		Bucket: aws.String(d.bucket),
 		Key:    aws.String(path),
-	}, func(o *s3.PresignOptions) {
+	}, func(o *awsS3.PresignOptions) {
 		o.Expires = expiration
 	})
 	if err != nil {

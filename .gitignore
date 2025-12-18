@@ -1,0 +1,86 @@
+# ----------------------------------------
+# Go build artifacts
+# ----------------------------------------
+/bin/
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Go workspace files
+go.work
+go.work.sum
+
+# ----------------------------------------
+# Coverage & test output
+# ----------------------------------------
+coverage.out
+*.out
+*.cover
+coverage/
+testdata/tmp/
+.tmp/
+
+# ----------------------------------------
+# Logs
+# ----------------------------------------
+*.log
+logs/
+tmp/
+
+# ----------------------------------------
+# Environment & config files
+# ----------------------------------------
+.env
+.env.*
+!.env.example
+
+# Viper config cache (if used)
+.viper/
+
+# ----------------------------------------
+# IDE / Editors
+# ----------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ----------------------------------------
+# Swagger / Swaggo generated docs
+# (manual markdown docs are allowed)
+# ----------------------------------------
+docs/swagger.json
+docs/swagger.yaml
+docs/*
+!docs/*.md
+
+# ----------------------------------------
+# Docker / Containers
+# ----------------------------------------
+docker-data/
+docker-volume/
+.docker/
+
+# ----------------------------------------
+# Dependency managers (optional)
+# ----------------------------------------
+vendor/
+
+# ----------------------------------------
+# Local file storage (MinIO, uploads)
+# ----------------------------------------
+storage/
+uploads/
+public/storage/
+public/uploads/
+
+# ----------------------------------------
+# OS files
+# ----------------------------------------
+.DS_Store
+Thumbs.db

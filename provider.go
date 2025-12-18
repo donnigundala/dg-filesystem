@@ -10,12 +10,17 @@ type FilesystemServiceProvider struct {
 	// Config is auto-injected by dg-core if using config tags
 	Config Config `config:"filesystem"`
 
+	// DriverFactories maps driver names to their factory functions
+	DriverFactories map[string]DriverConstructor
+
 	Manager *Manager
 }
 
 // NewFilesystemServiceProvider creates a new filesystem service provider.
-func NewFilesystemServiceProvider() *FilesystemServiceProvider {
-	return &FilesystemServiceProvider{}
+func NewFilesystemServiceProvider(driverFactories map[string]DriverConstructor) *FilesystemServiceProvider {
+	return &FilesystemServiceProvider{
+		DriverFactories: driverFactories,
+	}
 }
 
 // Name returns the provider name.
@@ -39,6 +44,13 @@ func (p *FilesystemServiceProvider) Register(app foundation.Application) error {
 
 	// Register built-in drivers
 	p.Manager.Extend("local", NewLocalDisk)
+
+	// Register custom drivers
+	if p.DriverFactories != nil {
+		for name, factory := range p.DriverFactories {
+			p.Manager.Extend(name, factory)
+		}
+	}
 
 	app.Singleton("filesystem", func(c container.Container) (interface{}, error) {
 		return p.Manager, nil
