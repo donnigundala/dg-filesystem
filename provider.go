@@ -1,4 +1,4 @@
-package filesystem
+package dgfilesystem
 
 import (
 	"github.com/donnigundala/dg-core/container"
@@ -25,12 +25,12 @@ func NewFilesystemServiceProvider(driverFactories map[string]DriverConstructor) 
 
 // Name returns the provider name.
 func (p *FilesystemServiceProvider) Name() string {
-	return "filesystem"
+	return Binding
 }
 
 // Version returns the provider version.
 func (p *FilesystemServiceProvider) Version() string {
-	return "1.0.0"
+	return Version
 }
 
 // Dependencies returns the provider dependencies.
@@ -52,7 +52,7 @@ func (p *FilesystemServiceProvider) Register(app foundation.Application) error {
 		}
 	}
 
-	app.Singleton("filesystem", func(c container.Container) (interface{}, error) {
+	app.Singleton(Binding, func(c container.Container) (interface{}, error) {
 		return p.Manager, nil
 	})
 
@@ -69,7 +69,7 @@ func (p *FilesystemServiceProvider) Boot(app foundation.Application) error {
 		}
 
 		// Register disk in container as filesystem.name
-		app.Singleton("filesystem."+name, func(c container.Container) (interface{}, error) {
+		app.Singleton(Binding+"."+name, func(c container.Container) (interface{}, error) {
 			return disk, nil
 		})
 

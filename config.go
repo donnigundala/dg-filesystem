@@ -1,4 +1,4 @@
-package filesystem
+package dgfilesystem
 
 // Config holds the configuration for the filesystem service.
 type Config struct {

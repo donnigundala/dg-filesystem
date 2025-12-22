@@ -1,4 +1,4 @@
-package filesystem
+package dgfilesystem
 
 import (
 	"fmt"
@@ -7,7 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/donnigundala/dg-core/contracts/filesystem"
 )
+
+var _ filesystem.Disk = (*LocalDisk)(nil)
 
 // LocalDisk implements the Disk interface for local storage.
 type LocalDisk struct {
@@ -16,7 +20,7 @@ type LocalDisk struct {
 }
 
 // NewLocalDisk creates a new local disk instance.
-func NewLocalDisk(config map[string]interface{}) (Disk, error) {
+func NewLocalDisk(config map[string]interface{}) (filesystem.Disk, error) {
 	root, ok := config["root"].(string)
 	if !ok {
 		return nil, fmt.Errorf("local driver requires 'root' config")

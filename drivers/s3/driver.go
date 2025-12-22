@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	awsS3 "github.com/aws/aws-sdk-go-v2/service/s3"
-	filesystem "github.com/donnigundala/dg-filesystem"
+	"github.com/donnigundala/dg-core/contracts/filesystem"
 )
 
 // S3Disk implements the Disk interface for AWS S3 compatible storage.

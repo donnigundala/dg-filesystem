@@ -141,3 +141,19 @@ type Disk interface {
     DeleteDirectory(path string) error
 }
 ```
+
+## 📊 Observability
+
+`dg-filesystem` is instrumented with OpenTelemetry metrics. If `dg-observability` is registered and enabled, the following metrics are automatically emitted for all disk operations:
+
+*   `filesystem.disk.operation.count`: Counter (labels: `disk.name`, `operation`, `status`)
+*   `filesystem.disk.operation.duration`: Histogram (labels: `disk.name`, `operation`, `status`) - measured in milliseconds.
+*   `filesystem.disk.operation.bytes`: Counter (labels: `disk.name`, `operation`, `type`) - tracks bytes read or written.
+
+To enable observability, ensure the `dg-observability` plugin is registered and configured:
+
+```yaml
+observability:
+  enabled: true
+  service_name: "my-app"
+```

@@ -1,14 +1,16 @@
-package filesystem
+package dgfilesystem
 
 import (
 	"fmt"
 	"sync"
+
+	"github.com/donnigundala/dg-core/contracts/filesystem"
 )
 
 // Manager handles filesystem drivers.
 type Manager struct {
 	drivers map[string]DriverConstructor
-	disks   map[string]Disk
+	disks   map[string]filesystem.Disk
 	mu      sync.RWMutex
 }
 
@@ -16,7 +18,7 @@ type Manager struct {
 func NewManager() *Manager {
 	return &Manager{
 		drivers: make(map[string]DriverConstructor),
-		disks:   make(map[string]Disk),
+		disks:   make(map[string]filesystem.Disk),
 	}
 }
 
@@ -28,7 +30,7 @@ func (m *Manager) Extend(driverName string, constructor DriverConstructor) {
 }
 
 // Disk returns a disk instance by name.
-func (m *Manager) Disk(name string, config map[string]interface{}) (Disk, error) {
+func (m *Manager) Disk(name string, config map[string]interface{}) (filesystem.Disk, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -52,6 +54,9 @@ func (m *Manager) Disk(name string, config map[string]interface{}) (Disk, error)
 		return nil, err
 	}
 
-	m.disks[name] = disk
-	return disk, nil
+	// Wrap with observability decorator
+	observedDisk := NewObservedDisk(disk, name)
+
+	m.disks[name] = observedDisk
+	return observedDisk, nil
 }
