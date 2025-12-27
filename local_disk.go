@@ -11,6 +11,10 @@ import (
 	"github.com/donnigundala/dg-core/contracts/filesystem"
 )
 
+func init() {
+	RegisterDriver("local", NewLocalDisk)
+}
+
 var _ filesystem.Disk = (*LocalDisk)(nil)
 
 // LocalDisk implements the Disk interface for local storage.

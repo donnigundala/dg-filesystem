@@ -13,7 +13,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	awsS3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/donnigundala/dg-core/contracts/filesystem"
+	dgfilesystem "github.com/donnigundala/dg-filesystem"
 )
+
+func init() {
+	dgfilesystem.RegisterDriver("s3", NewS3Disk)
+}
 
 // S3Disk implements the Disk interface for AWS S3 compatible storage.
 type S3Disk struct {

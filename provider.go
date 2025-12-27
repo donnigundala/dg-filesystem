@@ -42,9 +42,6 @@ func (p *FilesystemServiceProvider) Dependencies() []string {
 func (p *FilesystemServiceProvider) Register(app foundation.Application) error {
 	p.Manager = NewManager()
 
-	// Register built-in drivers
-	p.Manager.Extend("local", NewLocalDisk)
-
 	// Register custom drivers
 	if p.DriverFactories != nil {
 		for name, factory := range p.DriverFactories {

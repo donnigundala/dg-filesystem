@@ -7,6 +7,18 @@ import (
 	"github.com/donnigundala/dg-core/contracts/filesystem"
 )
 
+var (
+	globalDrivers   = make(map[string]DriverConstructor)
+	globalDriversMu sync.RWMutex
+)
+
+// RegisterDriver registers a driver constructor globally.
+func RegisterDriver(name string, constructor DriverConstructor) {
+	globalDriversMu.Lock()
+	defer globalDriversMu.Unlock()
+	globalDrivers[name] = constructor
+}
+
 // Manager handles filesystem drivers.
 type Manager struct {
 	drivers map[string]DriverConstructor
@@ -16,10 +28,19 @@ type Manager struct {
 
 // NewManager creates a new filesystem manager.
 func NewManager() *Manager {
-	return &Manager{
+	m := &Manager{
 		drivers: make(map[string]DriverConstructor),
 		disks:   make(map[string]filesystem.Disk),
 	}
+
+	// Load globally registered drivers
+	globalDriversMu.RLock()
+	for name, constructor := range globalDrivers {
+		m.drivers[name] = constructor
+	}
+	globalDriversMu.RUnlock()
+
+	return m
 }
 
 // Extend registers a custom driver.

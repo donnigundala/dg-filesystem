@@ -22,10 +22,10 @@ filesystem:
       bucket: "my-app-bucket"
       url: "https://my-app-bucket.s3.amazonaws.com"
       use_path_style: false
-      # AWS Credentials are automatically loaded from env:
-      # AWS_ACCESS_KEY_ID
-      # AWS_SECRET_ACCESS_KEY
-      # AWS_REGION
+      # AWS Credentials can be provided here or automatically loaded from ENV:
+      # key: "AKIA..."
+      # secret: "your-secret"
+      # ENV variables supported: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
 
     # MinIO / Custom S3
     minio:

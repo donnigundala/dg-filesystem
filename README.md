@@ -10,54 +10,45 @@ go get github.com/donnigundala/dg-filesystem
 
 ## 🚀 Usage
 
-### 1. Configuration
-
-Add the filesystem configuration to your `config/filesystem.yaml` (or via Viper):
-
-```yaml
-default: "local"
-
-disks:
-  local:
-    driver: "local"
-    root: "./storage/app"
-    url: "http://localhost:8080/storage"
-
-  s3:
-    driver: "s3"
-    region: "us-east-1"
-    bucket: "my-bucket"
-    url: "https://my-bucket.s3.amazonaws.com"
-    # Env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are used automatically
-```
-
-### 2. Registration
-
-If using `skeleton`, register the provider in `bootstrap/providers.go`:
-
 ```go
+package main
+
 import (
+    "github.com/donnigundala/dg-core/foundation"
     "github.com/donnigundala/dg-filesystem"
-    "github.com/donnigundala/dg-filesystem/drivers/s3"
+    _ "github.com/donnigundala/dg-filesystem/drivers/s3" // Register S3 driver
 )
 
-// ...
-
-func Providers() []interface{} {
-    return []interface{}{
-        // ...
-        &filesystem.FilesystemServiceProvider{},
-    }
+func main() {
+    app := foundation.New(".")
+    
+    // Register provider (uses 'filesystem' key in config)
+    app.Register(dgfilesystem.NewFilesystemServiceProvider(nil))
+    
+    app.Start()
+    
+    // Usage
+    disk := dgfilesystem.MustResolve(app)
+    disk.Put("hello.txt", []byte("Hello World"))
 }
 ```
 
-To enable the S3 driver (it is not enabled by default to keep dependencies light), you must register it manually or in a custom provider:
+### Integration via InfrastructureSuite
+In your `bootstrap/app.go`, you typically use the declarative suite pattern:
 
 ```go
-// In AppServiceProvider.Boot or similar
-fsManager := app.Make("filesystem").(*filesystem.Manager)
-fsManager.Extend("s3", s3.NewS3Disk)
+import _ "github.com/donnigundala/dg-filesystem/drivers/s3"
+
+func InfrastructureSuite(workerMode bool) []foundation.ServiceProvider {
+	return []foundation.ServiceProvider{
+		dgfilesystem.NewFilesystemServiceProvider(nil),
+		// ... other providers
+	}
+}
 ```
+
+> [!TIP]
+> To use the S3 driver, you MUST include a blank import of `github.com/donnigundala/dg-filesystem/drivers/s3` in your bootstrap file to trigger its self-registration.
 
 **Wait**, my current `FilesystemServiceProvider` creates a NEW manager every time `Register` is called? No, it's a singleton.
 But `FilesystemServiceProvider.Register` calls `p.Manager = NewManager()`.
@@ -123,6 +114,37 @@ Requires `github.com/donnigundala/dg-filesystem/drivers/s3`.
 import "github.com/donnigundala/dg-filesystem/drivers/s3"
 
 manager.Extend("s3", s3.NewS3Disk)
+```
+
+## Configuration
+
+The plugin uses the `filesystem` key in your configuration file.
+
+### Configuration Mapping (YAML vs ENV)
+
+| YAML Key | Environment Variable | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `filesystem.default` | `FILESYSTEM_DEFAULT` | `local` | Default disk name |
+| `filesystem.disks.<name>.driver` | - | - | `local`, `s3` |
+| `filesystem.disks.<name>.root` | - | - | Local root path |
+| `filesystem.disks.<name>.bucket` | - | - | S3 bucket name |
+| `filesystem.disks.<name>.region` | - | - | S3 region |
+| `filesystem.disks.<name>.key` | - | - | AWS Access Key |
+| `filesystem.disks.<name>.secret` | - | - | AWS Secret Key|
+
+### Example YAML
+
+```yaml
+filesystem:
+  default: local
+  disks:
+    local:
+      driver: local
+      root: "./storage/app"
+    s3:
+      driver: s3
+      bucket: "my-app"
+      region: "us-east-1"
 ```
 
 ## 📝 Interface
